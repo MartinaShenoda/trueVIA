@@ -2,7 +2,7 @@ import pygame, sys, math, random, time, operator
 from pygame.locals import *
 import RPi.GPIO as GPIO
 import pygame.mixer
-
+#hello
 WIDTH = 1020
 HEIGHT = 770
 FPS = 30
