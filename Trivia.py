@@ -35,11 +35,12 @@ TEXTSHADOWCOLOR = GRAY
 XAxis = 300
 YAxis = 200
 DISPLAYSURF = pygame.display.set_mode((WIDTH, HEIGHT))
+global PLAYER1, PLAYER2, SELECTED
 # initialize font object
 pygame.font.init()
 
 def main():
-    global CLOCK, PLAYER1, PLAYER2, game_state
+    global CLOCK, game_state
     GPIO.setmode(GPIO.BCM)
 
     GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -73,14 +74,13 @@ def main():
     running = True
     game_state = 0
     while running:
-        print('running')
-        print(game_state)
         if game_state == 0:
            game_state = start(game_state)
         #elif game_state == 1:
             #game_state = get_name(game_state)
         elif game_state == 1:
-            game_state = pick_player(game_state)
+            game_state, SELECTED = pick_player(game_state)
+            print(SELECTED)
         #for event in pygame.event.get():
          #   if event.type == pygame.QUIT:
           #      running = False        
@@ -93,7 +93,7 @@ def main():
                 
         pygame.display.update()
         CLOCK.tick(FPS)
-        
+               
     #BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     #BIGFONT = pygame.font.Font('freesansbold.ttf', 100)
     
@@ -105,8 +105,6 @@ def start(game_state):
     # wait until button press to continue
     start = True
     while start:
-        print('start')
-
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
@@ -142,30 +140,48 @@ def draw_play_button():
     DISPLAYSURF.blit(text, textrect)
     pygame.display.update()
 
+def draw_players(player1_color, player2_color):
+    basicfont = pygame.font.SysFont(None, 75)
+    text = basicfont.render('Player 1', True, (0, 0, 0), player1_color)    
+    textrect = text.get_rect()
+    textrect.bottomleft = tuple(map(operator.add,DISPLAYSURF.get_rect().bottomleft,(textrect.width,-5* textrect.height)))
+    
+    text2 = basicfont.render('Player 2', True, (0, 0, 0), player2_color) 
+    textrect2 = text2.get_rect()
+    textrect2.bottomright = tuple(map(operator.add,DISPLAYSURF.get_rect().bottomright,(-textrect2.width,-5 *textrect2.height)))
+    
+    
+    rect1 = pygame.draw.rect(DISPLAYSURF, player1_color, (textrect.centerx-textrect.width, textrect.centery-textrect.height, 2* textrect.width, 2* textrect.height))
+    pygame.draw.rect(DISPLAYSURF, player2_color, (textrect2.centerx-textrect2.width, textrect2.centery-textrect2.height, 2* textrect2.width, 2* textrect2.height))
+    DISPLAYSURF.blit(text, textrect)
+    DISPLAYSURF.blit(text2, textrect2)
+    
+    pygame.display.update()
+
+
 def pick_player(game_state):
     DISPLAYSURF.fill(NAVY)
     draw_title("Choose Player")
     selected_button_color = (255, 39, 154)
     cur_button_color = (255, 255, 255)
     
-    basicfont = pygame.font.SysFont(None, 75)
-    text = basicfont.render('Player 1', True, (0, 0, 0), selected_button_color)    
-    textrect = text.get_rect()
-    textrect.bottomleft = tuple(map(operator.add,DISPLAYSURF.get_rect().bottomleft,(textrect.width,-textrect.height)))
+    random_num = random.randint(2,5)
+    for x in range(random_num):
+        draw_players(selected_button_color,cur_button_color)
+        pygame.time.delay(200)
+        draw_players(cur_button_color,selected_button_color)
+        pygame.time.delay(200)
     
-    # textrect.centery = DISPLAYSURF.get_rect().centery
+    if random_num % 2 == 0:
+        draw_players(selected_button_color,cur_button_color)
+        SELECTED = 1
+    else:
+        draw_players(cur_button_color,selected_button_color)
+        SELECTED = 2
+        
     
-    text2 = basicfont.render('Player 2', True, (0, 0, 0), cur_button_color) 
-    textrect2 = text2.get_rect()
-    textrect2.bottomright = DISPLAYSURF.get_rect().bottomright
-    #textrect2.centery = DISPLAYSURF.get_rect().centery
-    
-    DISPLAYSURF.blit(text, textrect)
-    DISPLAYSURF.blit(text2, textrect2)
-    
-    pygame.display.update() 
     game_state = 2
-    return game_state
+    return game_state, SELECTED
 
 def runQuiz():
     # setup variables for the start of the game
